@@ -16,7 +16,7 @@ func getScripts(raw []byte) ([]string, error) {
 	var scripts []string
 
 	// regexp for start sh block
-	startRe, err := regexp.Compile("^```" + format + `\s*$`)
+	startRe, err := regexp.Compile(`(?m)^` + "```" + format + `\s*$`)
 	if err != nil {
 		return scripts, err
 	}
@@ -27,7 +27,7 @@ func getScripts(raw []byte) ([]string, error) {
 
 	for _, m := range matched {
 		// find end of supported block
-		endRe, err := regexp.Compile("^```$")
+		endRe, err := regexp.Compile(`(?m)^` + "```" + `$`)
 		if err != nil {
 			return scripts, err
 		}
@@ -58,24 +58,23 @@ func runScript(script string) error {
 }
 
 func main() {
-	if len(os.Args) != 2 {
+	if len(os.Args) != 3 {
 		fmt.Fprintln(os.Stderr, "Usage: harmonium (run|extract) <file>")
 		os.Exit(1)
 	}
 
-	subCommand := os.Args[0]
-	filepath := os.Args[1]
+	subCommand := os.Args[1]
+	filepath := os.Args[2]
 
 	data, err := ioutil.ReadFile(filepath)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "given filepath is invalid: %s", filepath)
+		fmt.Fprintln(os.Stderr, "given filepath is invalid:", filepath)
 		os.Exit(1)
 	}
 
 	scripts, err := getScripts(data)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "parse error at %s", filepath)
-		fmt.Fprintln(os.Stderr, "error details: %s", err)
+		fmt.Fprintln(os.Stderr, "parse error at", filepath)
 		os.Exit(1)
 	}
 
@@ -83,8 +82,7 @@ func main() {
 
 	if subCommand == "run" {
 		if err := runScript(joinedScript); err != nil {
-			fmt.Fprintln(os.Stderr, "execution failed at %s", filepath)
-			fmt.Fprintln(os.Stderr, "error details: %s", err)
+			fmt.Fprintln(os.Stderr, "execution failed at", filepath)
 			os.Exit(1)
 		}
 
@@ -92,7 +90,7 @@ func main() {
 	} else if subCommand == "extract" {
 		fmt.Println(joinedScript)
 	} else {
-		fmt.Fprintln(os.Stderr, "subcommand is invalid: %s", subCommand)
+		fmt.Fprintln(os.Stderr, "subcommand is invalid:", subCommand)
 		os.Exit(1)
 	}
 }
