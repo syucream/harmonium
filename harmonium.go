@@ -9,14 +9,15 @@ import (
 	"strings"
 )
 
-const format = `(sh|bash|csh|ksh|tcsh|zsh|)`
+const header = "set -eu\n"
+const format = `(sh|bash|csh|ksh|tcsh|zsh)`
 const tempFileName = "harmonium.sh"
 
 func getScripts(raw []byte) ([]string, error) {
 	var scripts []string
 
 	// regexp for start sh block
-	startRe, err := regexp.Compile(`(?m)^` + "```" + format + `\s*$`)
+	startRe, err := regexp.Compile(`(?m)^` + "```" + format + `$`)
 	if err != nil {
 		return scripts, err
 	}
@@ -78,7 +79,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	joinedScript := strings.Join(scripts, "\n")
+	joinedScript := header + strings.Join(scripts, "\n")
 
 	if subCommand == "run" {
 		if err := runScript(joinedScript); err != nil {
